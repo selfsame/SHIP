@@ -11,8 +11,8 @@
   (:use
      [clojure.pprint :only [pprint]]
      [ship.mind :only [ponder read-book mind_init]]
-     [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing get-thing-where record-thing
-                       clear-data time-stamp mutate use-mind history history-size record-event place]]
+     [ship.util]
+     [ship.types]
      [clojure.set :only [map-invert union difference intersection join subset? superset?]]))
 
 
@@ -162,6 +162,9 @@
 
 
 (ponder :who :h1  :conds [['node :q]])
+
+
+
 
 
 

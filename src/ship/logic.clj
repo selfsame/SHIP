@@ -5,6 +5,7 @@
 
    )
   (:use
+        [clojure.pprint :only [pprint]]
         [clojure.core.logic]
         [clojure.math.combinatorics :as combo]
         [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing get-thing-where record-thing clear-data symbolize-keyword time-stamp in?]]
@@ -197,16 +198,39 @@
 
 
 
+(defrel tool t)
+(defrel material m)
+(defrel affects t m)
+(defrel effect t e)
+(defrel portable t)
+
+(facts tool [[:wrench] [:handsaw]
+             [:tablesaw] [:hacksaw]
+             [:drillgun] [:drillpress]
+             [:circular-saw]])
 
 
+(facts material [[:metal] [:wood]
+             [:plastic] [:glass]])
 
+(facts effect [[:wrench :torque] [:handsaw :cut]
+             [:tablesaw :cut] [:hacksaw :cut]
+             [:drillgun :hole] [:drillpress :hole]
+             [:circular-saw :cut]])
 
+(facts affects [[:wrench :metal] [:handsaw :wood]
+             [:tablesaw :wood] [:hacksaw :metal] [:hacksaw :wood]
+             [:drillgun :metal] [:drillgun :wood] [:drillpress :metal] [:drillpress :wood]
+             [:circular-saw :wood]])
 
+(run* [q]
+      (affects q :metal))
 
-
-
-
-
+(run* [q]
+      (fresh [k v]
+        (effect v k)
+        (affects v :wood)
+        (== [v k] q)))
 
 
 

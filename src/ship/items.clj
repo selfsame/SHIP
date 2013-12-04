@@ -1,5 +1,6 @@
 (ns ship.items
-  (:use [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing record-thing]]))
+  (:use [ship.types]
+        [ship.util]))
 
 
 
@@ -8,13 +9,13 @@
 
 
 
-(defrecord Item [UID tag name weight description flags data])
+
 
 
 
 
 (defn record-item [& {:keys [tag name weight desc flags data state] :or {tag :item name "item" weight 1 desc "generic item" flags #{} data {} state{}}} ]
-  (let [ t (new Item (get-UID :x) tag name weight desc flags data)]
+  (let [ t (new ship.types.Item (get-UID :x) tag name weight desc flags data)]
     (do
       (record-thing t)
   )))
@@ -60,8 +61,7 @@
 
   (record-item :tag :book-structures :name "book of structure" :flags #{:uplink :basic} :data{ :code
   '(do
-     (defprotocol Node
-       (get-links [n]))
+
 
 
      (defrel structure s)
@@ -77,6 +77,11 @@
 
 
 )
+
+
+
+
+
 
 
 

@@ -1,6 +1,6 @@
 (ns ship.data
-  (:use
-   [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing record-thing]]))
+  (:use [ship.types]
+        [ship.util]))
 
 
 
@@ -91,6 +91,8 @@
 
 (defn finalize-rooms []
   (map swap-room-link (vals @(:r DATA))) )
+
+
 
 
 

@@ -1,5 +1,6 @@
 (ns ship.humans
-  (:use [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing record-thing symbolize-keyword]]))
+  (:use [ship.types]
+        [ship.util]))
 
 (defn make-genotype [gene-data]
   (reduce conj {} (for [gene gene-data
@@ -89,6 +90,8 @@
           } ]
          (record-thing human)
           my-uid))
+
+
 
 
 

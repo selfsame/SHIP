@@ -1,5 +1,6 @@
 (ns ship.ship
-  (:use [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing record-thing in?]]))
+  (:use [ship.types]
+        [ship.util]))
 
 
 (defn modify [thing k v]
@@ -93,6 +94,8 @@
 (search [:r3])
 
 (find-path :r1 :r12)
+
+
 
 
 

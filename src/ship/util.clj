@@ -1,5 +1,7 @@
 (ns ship.util
-  (:use [clojure.string :only [join] ]))
+
+  (:use [clojure.string :only [join]]
+        ))
 
 ;h humans
 ;r rooms
@@ -12,6 +14,9 @@
   (some #(= elm %) seq))
 
 (defn symbolize-keyword [k](symbol (join (rest (str k) )  )))
+
+(defn uid-prefix [k]
+  (keyword (re-find #"[a-zA-Z-_]+" (str k))))
 
 (defn clear-data []
   (def history (atom []))
@@ -40,7 +45,7 @@
 
 (defn get-thing
  ([k]
-  (let [pre (get-prefix k)]
+  (let [pre (uid-prefix k)]
   (get @(pre DATA) k)))
  ([k & args]
   (let [pre (get-prefix k)]
@@ -77,8 +82,8 @@
 (defn unplace [thing room]
   (record-event {:role (:role thing) :UID (:UID thing) :unplace room (:UID thing) 1}))
 
-
-
+(defn parse-int [s]
+  (Integer/parseInt (re-find #"\d+" s)))
 
 
 
