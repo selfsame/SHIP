@@ -57,7 +57,30 @@
     :facts [['property :name :last-name :sex :race :age :height :hair-color :job :state]
             ['property-of :human #{:name :last-name :sex :race :age :height :hair-color :job :state}]]})
 
+
+  (record-item :tag :book-structures :name "book of structure" :flags #{:uplink :basic} :data{ :code
+  '(do
+     (defprotocol Node
+       (get-links [n]))
+
+
+     (defrel structure s)
+     (defrel node n)
+     (defrel link n n)
+     (defn adjacent [n1 n2]
+       (link n1 n2))
+
+     (fact node :r)
+
+
+     )})
+
+
 )
+
+
+
+
 
 
 

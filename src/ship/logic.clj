@@ -13,40 +13,6 @@
 
 
 
-
-
-
-(defrel tool x)
-(defrel tool-affect x y)
-(defrel tool-effect x y)
-(defrel tool-weight t n)
-(defrel materials x)
-(defrel material-type x y)
-(defrel item-portable x)
-
-(facts materials [[:oak]
-                  [:pine]
-                  [:birch]
-                  [:aluminum]
-                  [:copper]
-                  [:bronze]
-                  [:iron]
-                  [:steel]
-                  [:plastic]
-                  [:glass]])
-
-(facts material-type
-                 [[:wood :oak]
-                  [:wood :pine]
-                  [:wood :birch]
-                  [:metal :aluminum]
-                  [:metal :iron]
-                  [:metal :steel]
-                  [:metal :bronze]
-                  [:metal :copper]])
-
-
-
 ;meta functions to make relations and facts from outside ns
 
 (defn relationize [token]
@@ -153,29 +119,92 @@
 
 
 
-(defn query-run [r a b]
-  (let [rel (relationize r)
-       ]
-    (cond (= a :?) (run* [q] (rel q b))
-          (= b :?) (run* [q] (rel a q))
-          )))
 
-(make-rel 'edible 'x)
 
-(type edible)
 
-(make-rel 'genus 'x 'y)
 
-(make-fact edible :peanut)
 
-(make-fact 'edible :peanut)
-(make-fact "edible" :fish :cheese :apple :salmon :cod)
+(defrel node n)
+(defrel link n n)
+(defn adjacent [n1 n2]
+  (link n1 n2))
 
-(make-fact (relationize genus) [:fish :salmon] [:mammal :cat] [:fish :cod])
 
-(run* [q] ((relationize "genus") q :cod))
-(relationize 'edible)
-(query-run "genus" :fish :? )
+(defrel place r)
+(defrel exits r rcol)
+
+
+(defn adjacent [r1 r2]
+  (conde
+
+   [(place r1)(place r2)
+    (fresh [e1]
+           (exits r1 e1) (membero r2 e1))]
+   [(place r1)(place r2)
+    (fresh [e2]
+           (exits r2 e2) (membero r1 e2))]
+   )
+  )
+
+
+(map (fn [r]
+       (fact place (:UID r))
+       (fact exits (:UID r) (keys (:exits r)))
+
+         ) (vals @(:r DATA)))
+
+
+
+(defn not-membero
+[x l]
+(fresh [head tail]
+(conde
+( (== l ()) )
+( (conso head tail l)
+(!= x head)
+(not-membero x tail) ))))
+
+(defn prefixo [x y]
+  (fresh [a]
+         (appendo x a y)))
+
+(defn lasto
+  "Declares x as the last item in y"
+  [x y]
+  (fresh [a]
+         (appendo a [x] y)))
+
+
+
+(defn find-path [start finish]
+  (run 20 [q]
+      (fresh [x y z]
+        (place start)(place finish)
+
+        (place x)
+        (adjacent start x)(!= start y)(!= x y)
+        (place y)
+        (adjacent x y)
+
+        (prefixo [start x y] q)
+        (lasto finish q)
+       )))
+
+
+(find-path :r5 :r10)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

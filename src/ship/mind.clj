@@ -40,13 +40,15 @@
   ;switch to namespace logic for human
   (use-mind t)
     ;refer to some outside logic functions
-    (refer 'ship.logic :only '[make-fact make-rel query-run])
+    (refer 'ship.logic :only '[make-fact make-rel])
     (refer 'ship.mind :only '[read-book])
     (refer 'ship.util :only '[DATA get-UID dissoc-in get-prefix rand-in get-thing get-thing-where record-thing clear-data time-stamp mutate symbolize-keyword use-mind record-event])
     (def ME t)
     ;read some books
-    (let [basic-books (get-thing-where :x :flags #{:readable :basic})]
-      (dorun (map read-book basic-books)))
+    (let [basic-books (get-thing-where :x :flags #{:readable :basic})
+          basic-uplinks (get-thing-where :x :flags #{:uplink :basic})]
+      (dorun (map read-book basic-books))
+      (dorun (map (fn [a] (eval (:code (:data a)))) basic-uplinks)))
 
   (in-ns (ns-name current)) :success))
 
@@ -63,9 +65,7 @@
       )))
 
 (in-ns 'ship.mind)
-(ponder :who :h1 :conds [["property-of" :human :?]] )
 
-(ponder :who :h1 :conds [["concept" :?]] )
 
 
 (def book (get-thing-where :x :flags #{:readable :basic}))
@@ -74,6 +74,10 @@ book
 
 
 *ns*
+
+
+
+
 
 
 

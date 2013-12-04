@@ -138,12 +138,14 @@
 
 
 
-;(def book (get-thing-where :x :flags #{:readable :basic}))
+(def book (get-thing-where :x :flags #{:readable :basic}))
 
-;(:data (first book))
+(:data (first book))
 
 
 *ns*
+
+(ponder :who :h1  :conds [['concept :q]])
 
 (ponder :who :h1 :fresh '[k v]
                   :conds [['action-req :?k :?v]
@@ -157,24 +159,9 @@
 
 
 
-(use-mind :h1)
-
-(def results (run* [q] (fresh [k v x h]
-          (concept k)
-          (is-concept k v)
-          (action-req h x)
-          (membero h [v])
-          (== q [k v x]))) )
 
 
-(vec results)
-
-
-(first (vals (group-by first results)))
-
-
-      (apply merge-with conj (map (fn [a] { (first a) {(second a) (set (last a))}})
-           (first (vals (group-by first results)))) )
+(ponder :who :h1  :conds [['node :q]])
 
 
 
