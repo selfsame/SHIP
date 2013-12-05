@@ -8,8 +8,9 @@
         [clojure.pprint :only [pprint]]
         [clojure.core.logic]
         [clojure.math.combinatorics :as combo]
-        [ship.util :only [DATA get-UID dissoc-in get-prefix rand-in get-thing get-thing-where record-thing clear-data symbolize-keyword time-stamp in?]]
-        [clojure.set :only [map-invert union difference intersection join subset? superset?]]))
+        [ship.util]
+     [ship.types]
+   [clojure.set :only [map-invert union difference intersection join subset? superset?]]))
 
 
 
@@ -131,17 +132,17 @@
   (link n1 n2))
 
 
-(defrel place r)
+(defrel location r)
 (defrel exits r rcol)
 
 
 (defn adjacent [r1 r2]
   (conde
 
-   [(place r1)(place r2)
+   [(location r1)(location r2)
     (fresh [e1]
            (exits r1 e1) (membero r2 e1))]
-   [(place r1)(place r2)
+   [(location r1)(location r2)
     (fresh [e2]
            (exits r2 e2) (membero r1 e2))]
    )
@@ -149,7 +150,7 @@
 
 
 (map (fn [r]
-       (fact place (:UID r))
+       (fact location (:UID r))
        (fact exits (:UID r) (keys (:exits r)))
 
          ) (vals @(:r DATA)))
@@ -177,22 +178,7 @@
 
 
 
-(defn find-path [start finish]
-  (run 20 [q]
-      (fresh [x y z]
-        (place start)(place finish)
 
-        (place x)
-        (adjacent start x)(!= start y)(!= x y)
-        (place y)
-        (adjacent x y)
-
-        (prefixo [start x y] q)
-        (lasto finish q)
-       )))
-
-
-(find-path :r5 :r10)
 
 
 
@@ -238,10 +224,117 @@
 
 
 
+(def per (map #(keyword (apply str %)) (apply combo/cartesian-product [['r 'h 'i 'x]
+                                 (vec (take 100 (iterate inc 0)))
+                                 ] )))
+
+per
+
+(filter valid? per)
+
+(first [])
+
+(defrel type-seq n)
+(defrel type-fn n)
+(defrel type-number n)
+(defrel type-string n)
+(defrel literal n)
+(defrel arg-1 f)
+(defrel arg-1-type f t)
+(defrel arg-2 f)
+(defrel arg-2-type f t)
+
+(fact type-seq 'vector)
+(fact type-seq 'list)
+
+(defrel creates-seq f a)
+(defrel creates-literal f a)
 
 
+;literal
+;function
+;start-seq
+;end-seq
+
+(defrel literal a)
+(defrel l-s a)
+(defrel l-e a)
+(defrel func a)
+(defrel symbo a)
+(defrel is-n a)
+(defrel is-s a)
+(defrel is-col a)
+(defn l-or-s [a] (conde [(symbo a)][(literal a)]))
+
+(fact literal 1)
+(facts symbo [['n] ['s] ['col]] )
+(fact is-n 'n)
+(fact is-s 's)
+(fact is-col 'col)
+(fact l-s (symbol (str "(")) )
+(fact l-e (symbol (str ")")) )
+(facts func [['str]['reverse]['keyword]['count]['sort]['type]])
+
+;functions can have as arg 1
+(defrel applies-1-n f)
+(facts applies-1-n [['identity]['keyword]['type]['str]])
+(defrel applies-1-s f)
+(facts applies-1-s [['identity]['reverse]['keyword]])
+(defrel applies-1-col f)
+(facts applies-1-col [['identity]['reverse]['count]['sort][(symbol "apply str")]])
+
+(defn match-f-a [f a]
+  (unify*)
+  (conde [((== 'n a)(applies-1-n f))]
+         [((== 's a)(applies-1-s f))]
+         [((== 'col a)(applies-1-col f))]))
+
+(defn term3 [b] (fresh [m n]
+         (func m)(symbo n)
+
+         (conde
+         [(applies-1-col m)(is-col n)
+          (== b `(~m ~n) )]
+         [(applies-1-s m)(is-s n)
+          (== b `(~m ~n) )]
 
 
+         [(applies-1-n m)(is-n n)
+          (== b `(~m ~n))]
+         [(== b n )] )))
+
+(defn term2 [b] (fresh [m n]
+         (func m)(term3 n)
+         (conde
+         [(applies-1-n m)(== b `(~m ~n) )]
+         [(== b n )] )))
+
+(defn term [b] (fresh [m n]
+         (func m)(term2 n)
+         (conde
+         [(applies-1-n m)(== b `(~m ~n) )]
+         [(== b n )] )))
 
 
+(def res (into #{} (run 2070 [q]
+     (fresh [k v a b c z g t]
+        (literal k)
+        (l-s v)
+        (l-e a)
+        (func b)
+        (term t)
+        (== q `(~'fn [~'n ~'s ~'col] ~t))
+
+          ))))
+
+res
+
+
+(into #{} (map #( (eval %) 4 "hello" [:a :b]) res))
+
+(apply str [1 2 3])
+
+(seq? [1 3])
+
+((fn [n s col] (apply str col)) 1 "s" [1 2])
 

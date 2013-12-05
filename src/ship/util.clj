@@ -1,5 +1,4 @@
 (ns ship.util
-
   (:use [clojure.string :only [join]]
         ))
 
@@ -36,9 +35,9 @@
 
 
 
-(defn get-UID [prefix]
-  (let [n (swap! (prefix UIDS) inc)]
-  (keyword (str (last (str prefix)) n))))
+(defn get-UID [p]
+  (let [n (swap! (p UIDS) inc)]
+  (keyword (str (last (str p)) n))))
 
 (defn get-prefix [k]
   (keyword (str (first (rest (str k))))))
@@ -51,6 +50,8 @@
   (let [pre (get-prefix k)]
   (cond (= (type (get (get @(pre DATA) k) (first args))) clojure.lang.Atom) (get-in @(get (get @(pre DATA) k) (first args)) (rest args))
   :else (get-in (get @(pre DATA) k) args) ))))
+
+
 
 (defn get-thing-where [pre k v]
   (filter (fn [a] (= (k a) v) ) (vals @(pre DATA)) ))
@@ -84,6 +85,11 @@
 
 (defn parse-int [s]
   (Integer/parseInt (re-find #"\d+" s)))
+
+
+
+
+
 
 
 

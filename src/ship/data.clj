@@ -85,12 +85,14 @@
 (defn swap-room-link [room]
   (let [tag-vec (:exits room)]
 
-    (swap! (:r DATA) assoc-in [(:UID room) :exits ]       (into {} (map (fn [a] {(:UID (get-by-tag a)) a } ) tag-vec))     )
+    (swap! (:r DATA) assoc-in [(:UID room) :links ]       (into #{} (map (fn [a] (:UID (get-by-tag a))  ) tag-vec))     )
 
     ))
 
 (defn finalize-rooms []
   (map swap-room-link (vals @(:r DATA))) )
+
+
 
 
 

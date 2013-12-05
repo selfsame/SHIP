@@ -15,6 +15,7 @@
           :description desc
           :contents {:humans {} :items {}}
           :exits {}
+          :links #{}
           :state (atom {:oxygen 80})
           :name name } ]
          (record-thing room)
@@ -48,11 +49,6 @@
   )
 
 
-(defn get-exits [r]
-  (cond
-   (= (type :a) clojure.lang.Keyword) (keys (get-thing r :exits))
-   :else []))
-
 
 (defn nth-last [col n]
   (cond (>= (- (count col) (+ n 1)) 0) (nth col (- (count col) (+ n 1)))
@@ -61,39 +57,12 @@
 
 
 
-; given a vector of nodes, find last node connections and return a set of possible extensions
-(defn search [path]
-  (cond
-    (= (type (last path)) clojure.lang.Keyword)
-  (let [ options (get-exits (last path))]
-    (mapv (fn [a]
-           (cond
-            (in? path a) path
-            :else (conj path a))) options))
-   :else []))
 
 
-(type :a)
-
-(defn find-path [r1 r2]
-  (let [open (remove (fn [a] (= a r1)) (keys @(:r DATA)))
-        results (loop [results #{[r1]}  count 0]
-          (cond
-           (= count 40) results
-            :else (recur
-                (set (mapcat (fn [a] (search a) ) results))
-              (inc count)
-            )))]
-
-      (filter #(= (last %) r2) results)
-    ))
 
 
-(get-exits :r1)
 
-(search [:r3])
 
-(find-path :r1 :r12)
 
 
 
