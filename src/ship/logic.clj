@@ -209,26 +209,175 @@
    (coll? in) (str `(~'collection! ~var)`(~'literal! ~var))
    :else (str `(~'nil! ~var)`(~'literal! ~var)))))
 
+(defn ensure-return-type [out]
+  (cond
+   (number? out) "(return-type! f1 :number)"
+   (string? out) "(return-type! f1 :string)"
+   (coll? out) "(return-type! f1 :coll)"
+   :else "(return-type! f1 :nil)"))
+
 (defn conflibulate [in out]
   "returns a logic run for the in and out data"
   (let [vars (take (count in) in-vars)]
   (str (apply str (map conf-in-facts (reverse (zipmap in vars))))
        (conf-head (string/join " " vars ))
+       (ensure-return-type out)
        (apply str (map conf-in-rel (reverse (zipmap in vars))))
        (conf-tail vars (string/join " " in )))
   ))
 
 
+(ensure-return-type -6)
 
-
-(def flib (conflibulate [1 2 3] nil))
+(def flib (conflibulate [1 2 3] "231"))
 flib
 
 (into #{} (load-string flib))
 (map eval (into #{} (load-string flib)))
 
 
+(defn possible-fns
+  ([arg]
+    (into #{} (run 50 [q] (fresh [f2 f1 f3 t1]
+       (arity-type-first! f1 arg)
+       (arity-req-more! f2)
+       (!= f1 f2)
+       (arity-req-more! f3)(!= f1 f3)
+       (return-type! f1 t1)
+       (== q [f1 t1])))))
+  ([arg & more]
+      (into #{} (load-string (str
+       "(run 50 [q] (fresh [f1 t1]"
+       (str "(arity-type-first! f1 " arg  ")" )
+       "(return-type! f1 t1)"
+       (apply str (map (fn [p] (str "(arity-type-rest! f1 " p ")" )) (set more) ))
+       "(== q [f1 t1])"
+       "))"  )))))
+
+(defn flabify [args]
+  (let [tokenized (mapcat tokenize args)
+        perm-1  (combo/partitions tokenized)]
+    ;(map (fn[a] (map (fn[b] (apply possible-fns b)) a) ) perm-1)
+    (map
+      ; This function operates on a subdivision of parts
+      (fn[subdiv]
+         (map (fn [part]
+           ;This function operates on a part
+             ;{:in part
+             ; :types (map :type part )
+             ;:fn (apply possible-fns (map :type part ))
+             ; :packed
+             (map (fn[fx]
+                             {:string (str "(" (first fx) " " (string/join  " " (map :string part)) ") " )
+                              :type (last fx)
+                              }
+                             ) (apply possible-fns (map :type part )))
+
+              ;}
+
+                ) subdiv) ) perm-1)
 
 
+
+    ))
+
+(defn patternations [args]
+  (let [perm-1  (combo/partitions args)]
+    ;(map (fn[a] (map (fn[b] (apply possible-fns b)) a) ) perm-1)
+    (map
+      ; This function operates on a subdivision of parts
+      (fn[subdiv]
+         (map (fn [part]
+               (apply merge-with concat
+                      (map (fn[fx]
+                             {(last fx) (list (str "(" (first fx) " " (string/join  " " (map :string part)) ") " )) }
+                             ) (apply possible-fns (map :type part ))))
+                ) subdiv) ) perm-1)))
+
+(defn variate [patterns]
+  (map (fn[pats]
+    (into {} (apply merge-with concat (map (fn[z] {z (vec (map (fn[y c] (set (get c y)) ) z pats)) })
+      (apply combo/cartesian-product (map keys pats)))))) patterns))
+
+
+
+(defn flatternate [data]
+
+  (apply merge-with concat
+  (mapcat (fn[a]
+
+                        (map (fn[b] {(key b) (vec (flatten (concat (apply combo/cartesian-product (map vec (val b) ) )))) }  ) a )
+
+            ) data) ))
+
+(apply combo/cartesian-product [[1 2]] )
+
+(variate  (patternations (tokenize 3) ))
+
+(keys (flatternate (variate  (patternations (tokenize 3 [1 2]) ))))
+
+
+(variate  (patternations (tokenize 3 [1 2]) ))
+
+
+(flatternate (variate  (patternations (tokenize 3 [1 2]) )))
+
+
+(defn type-token [a]
+  (cond
+   (number? a) :number
+   (string? a) :string
+   (coll? a) :coll
+   :else :nil))
+
+(defn tokenize [& more]
+  (map (fn [a]  {:string (str a) :type (type-token a)}) more))
+
+
+(defn mungify [permuparts]
+  (let [perm-by-type (map (fn[v] (group-by :type v) ) permuparts)
+        possitypes (apply combo/cartesian-product (map keys perm-by-type) )
+        possifuncts (mapcat   (fn[part] {part (apply possible-fns part)} )  possitypes )
+        ]
+
+        (defn t-t-s [kks]
+          ;given a set of type keys, return vecs of possible data
+          (map (fn [kk] (map (fn[a b] (:string (first (get b a)))) kk perm-by-type)) kks))
+        ;
+        (defn permutate [pfpart]
+          (let
+          [fn-set (map #(str (first %) " " ) (val pfpart))
+           key-set (key pfpart)
+           results (apply combo/cartesian-product (cons fn-set (map (fn[a b] (map :string (get a b))) perm-by-type key-set) ))
+           ]
+
+
+            (map (fn [r] {:string (apply str (concat "(" r ") ")) :type :?} ) results)
+            ))
+        (permutate (first possifuncts))
+
+    ))
+
+
+;  {:pattern (:number :number) :variations [["(+ 3 3)" "(- 3 3)"]["(+ 3 3)" "(- 3 3)"]]}
+
+
+
+(possible-fns :string)
+
+(tokenize :string :number )
+
+(combo/partitions (mapcat tokenize ["joe" 1] ))
+
+
+(mungify (last (flabify ["jkd" 5])))
+
+(first (mungify (last (flabify ["jkd" 5]))))
+
+(second (mungify (last (flabify ["jkd" 5]))))
+
+(flabify ["jkd" 5])
+
+(possible-fns :string)
 
 
